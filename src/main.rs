@@ -20,9 +20,70 @@ fn check_vanishing_puyo(field: &mut Field) -> bool {
     todo!()
 }
 
-fn fall_floating_puyos(field: &mut Field) -> bool {
+fn fall_floating_puyos_first(field: &mut Field, puyos: &Puyos) {
     // This function drops the floating Puyos and organizes the game board. It returns a boolean value indicating whether the game board has changed or not.
-    todo!()
+    let puyo1_pos: Position = puyos.puyo_1.1;
+    let puyo2_pos: Position = puyos.puyo_2.1;
+    if puyo1_pos.y == puyo2_pos.y {
+        if puyo1_pos.x < puyo2_pos.x {
+            // puyo2が下の方にあるので先に落とす。
+            for i in (3..FIELD_HEIGHT).rev() {
+                if field[i][puyo2_pos.y] == FIELD_SPACE {
+                    field[i][puyo2_pos.y] = puyos.puyo_2.0;
+                    break;
+                }
+            }
+            for i in (3..FIELD_HEIGHT).rev() {
+                if field[i][puyo1_pos.y] == FIELD_SPACE {
+                    field[i][puyo1_pos.y] = puyos.puyo_1.0;
+                    break;
+                }
+            }
+        } else {
+            for i in (3..FIELD_HEIGHT).rev() {
+                if field[i][puyo1_pos.y] == FIELD_SPACE {
+                    field[i][puyo1_pos.y] = puyos.puyo_1.0;
+                    break;
+                }
+            }
+            for i in (3..FIELD_HEIGHT).rev() {
+                if field[i][puyo2_pos.y] == FIELD_SPACE {
+                    field[i][puyo2_pos.y] = puyos.puyo_2.0;
+                    break;
+                }
+            }
+        }
+    } else {
+        for i in (3..FIELD_HEIGHT).rev() {
+            if field[i][puyo1_pos.y] == FIELD_SPACE {
+                field[i][puyo1_pos.y] = puyos.puyo_1.0;
+                break;
+            }
+        }
+        for i in (3..FIELD_HEIGHT).rev() {
+            if field[i][puyo2_pos.y] == FIELD_SPACE {
+                field[i][puyo2_pos.y] = puyos.puyo_2.0;
+                break;
+            }
+        }
+    }
+}
+
+fn fall_floating_puyos_second(field: &mut Field) -> bool {
+    let mut check: bool = false;
+    for j in 1..FIELD_WIDTH {
+        let mut k = FIELD_HEIGHT - 2;
+        for i in (0..FIELD_HEIGHT - 2).rev() {
+            if field[i][j] != FIELD_SPACE {
+                if i != k {
+                    check = true;
+                }
+                field[k][j] = field[i][j];
+                k -= 1;
+            }
+        }
+    }
+    return check;
 }
 
 fn check_end(field: &Field) -> bool {
@@ -60,8 +121,28 @@ fn print_field(field: &Field, puyos: &Puyos) {
                 print!(" {}", puyos.puyo_2.0);
             } else if i == 4 && j == 3 {
                 print!(" x");
+            } else if field[i][j] == FIELD_NULL {
+                print!("  ");
+            } else if field[i][j] == FIELD_WALL {
+                print!("[]");
+            } else if field[i][j] == FIELD_SPACE {
+                print!(" .")
+            } else {
+                print!(" {}", field[i][j]);
             }
-            else if field[i][j] == FIELD_NULL {
+        }
+        println!();
+    }
+    println!();
+}
+
+fn print_field_no_puyo(field: &Field) {
+    println!("\x1b[H");
+    for i in 0..FIELD_HEIGHT {
+        for j in 0..FIELD_WIDTH {
+            if i == 4 && j == 3 {
+                print!(" x");
+            } else if field[i][j] == FIELD_NULL {
                 print!("  ");
             } else if field[i][j] == FIELD_WALL {
                 print!("[]");
@@ -102,33 +183,15 @@ impl Puyos {
 fn main() {
     let field: Field = [
         [
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
+            FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL,
             FIELD_NULL,
         ],
         [
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
+            FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL,
             FIELD_NULL,
         ],
         [
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
-            FIELD_NULL,
+            FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL, FIELD_NULL,
             FIELD_NULL,
         ],
         [
@@ -309,14 +372,18 @@ fn main() {
                         print_field(&field_buf, &puyo);
                     }
                 }
-                Ok(Key::Char('\r')) => break,
+                Ok(Key::Char('\r')) => {
+                    fall_floating_puyos_first(&mut field_buf, &puyo);
+                    print_field_no_puyo(&field_buf);
+                    break;
+                }
                 _ => (),
             }
         }
 
         loop {
             let mut check_loop_end: bool = true;
-            check_loop_end &= !fall_floating_puyos(&mut field_buf);
+            check_loop_end &= !fall_floating_puyos_second(&mut field_buf);
             check_loop_end &= !check_vanishing_puyo(&mut field_buf);
             if check_loop_end {
                 break;
