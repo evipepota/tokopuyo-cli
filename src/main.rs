@@ -274,7 +274,7 @@ fn main() {
                         print_field(&field_buf, &puyo);
                     }
                 }
-                Ok(Key::Home) => break,
+                Ok(Key::Char('\r')) => break,
                 _ => (),
             }
         }
