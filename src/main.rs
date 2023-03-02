@@ -1,3 +1,8 @@
+extern crate rand;
+
+use getch_rs::{Getch, Key};
+use rand::Rng;
+
 const PUYO_COLOR: usize = 4;
 const PUYO_RED: i32 = 1;
 const PUYO_BLUE: i32 = 2;
