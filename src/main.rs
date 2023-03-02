@@ -10,8 +10,9 @@ const PUYO_YELLOW: i32 = 3;
 const PUYO_GREEN: i32 = 4;
 const FIELD_WALL: i32 = 5;
 const FIELD_SPACE: i32 = 0;
+const FIELD_NULL: i32 = -1;
 const FIELD_WIDTH: usize = 6 + 2;
-const FIELD_HEIGHT: usize = 12 + 2;
+const FIELD_HEIGHT: usize = 12 + 2 + 3;
 type Field = [[i32; FIELD_WIDTH]; FIELD_HEIGHT];
 
 fn check_vanishing_puyo(field: &mut Field) -> bool {
@@ -50,14 +51,20 @@ fn is_collision(puyo_pos: Position) -> bool {
 }
 
 fn print_field(field: &Field, puyos: &Puyos) {
+    println!("\x1b[H");
     for i in 0..FIELD_HEIGHT {
         for j in 0..FIELD_WIDTH {
-            if field[i][j] == FIELD_WALL {
-                print!("[]");
-            } else if i == puyos.puyo_1.1.x && j == puyos.puyo_1.1.y {
+            if i == puyos.puyo_1.1.x && j == puyos.puyo_1.1.y {
                 print!(" {}", puyos.puyo_1.0);
             } else if i == puyos.puyo_2.1.x && j == puyos.puyo_2.1.y {
                 print!(" {}", puyos.puyo_2.0);
+            } else if i == 4 && j == 3 {
+                print!(" x");
+            }
+            else if field[i][j] == FIELD_NULL {
+                print!("  ");
+            } else if field[i][j] == FIELD_WALL {
+                print!("[]");
             } else if field[i][j] == FIELD_SPACE {
                 print!(" .")
             } else {
@@ -66,6 +73,7 @@ fn print_field(field: &Field, puyos: &Puyos) {
         }
         println!();
     }
+    println!();
 }
 
 #[derive(Clone, Copy)]
@@ -83,7 +91,7 @@ impl Puyos {
     fn new() -> Self {
         let (puyo_1, puyo_2) = generate_puyo();
         let start_1: Position = Position { x: 1, y: 3 };
-        let start_2: Position = Position { x: 1, y: 4 };
+        let start_2: Position = Position { x: 2, y: 3 };
         return Puyos {
             puyo_1: (puyo_1, start_1),
             puyo_2: (puyo_2, start_2),
@@ -93,6 +101,36 @@ impl Puyos {
 
 fn main() {
     let field: Field = [
+        [
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+        ],
+        [
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+        ],
+        [
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+            FIELD_NULL,
+        ],
         [
             FIELD_WALL,
             FIELD_SPACE,
@@ -243,7 +281,6 @@ fn main() {
         let mut puyo = Puyos::new();
 
         loop {
-            println!("\x1b[H");
             print_field(&field_buf, &puyo);
             match g.getch() {
                 Ok(Key::Left) => {
@@ -256,7 +293,6 @@ fn main() {
                     if !is_collision(new_puyo1_pos) && !is_collision(new_puyo2_pos) {
                         puyo.puyo_1.1 = new_puyo1_pos;
                         puyo.puyo_2.1 = new_puyo2_pos;
-                        println!("\x1b[H");
                         print_field(&field_buf, &puyo);
                     }
                 }
@@ -270,7 +306,6 @@ fn main() {
                     if !is_collision(new_puyo1_pos) && !is_collision(new_puyo2_pos) {
                         puyo.puyo_1.1 = new_puyo1_pos;
                         puyo.puyo_2.1 = new_puyo2_pos;
-                        println!("\x1b[H");
                         print_field(&field_buf, &puyo);
                     }
                 }
