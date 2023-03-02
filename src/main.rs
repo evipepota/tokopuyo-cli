@@ -24,8 +24,71 @@ fn fall_floating_puyos(field: &mut Field) -> bool {
     todo!()
 }
 
-fn check_end(field: Field) -> bool {
+fn check_end(field: &Field) -> bool {
     todo!()
+}
+
+fn generate_puyo() -> (i32, i32) {
+    let mut rng = rand::thread_rng();
+    let puyo_1 = rng.gen_range(0..PUYO_COLOR) as i32 + 1;
+    let puyo_2 = rng.gen_range(0..PUYO_COLOR) as i32 + 1;
+    return (puyo_1, puyo_2);
+}
+
+fn is_collision(puyo_pos: Position) -> bool {
+    // 左の判定
+    if puyo_pos.y == 0 {
+        return true;
+    }
+    // 右の判定
+    if puyo_pos.y == (FIELD_WIDTH - 1) {
+        return true;
+    }
+    // 下の判定 todo
+
+    false
+}
+
+fn print_field(field: &Field, puyos: &Puyos) {
+    for i in 0..FIELD_HEIGHT {
+        for j in 0..FIELD_WIDTH {
+            if field[i][j] == FIELD_WALL {
+                print!("[]");
+            } else if i == puyos.puyo_1.1.x && j == puyos.puyo_1.1.y {
+                print!(" {}", puyos.puyo_1.0);
+            } else if i == puyos.puyo_2.1.x && j == puyos.puyo_2.1.y {
+                print!(" {}", puyos.puyo_2.0);
+            } else if field[i][j] == FIELD_SPACE {
+                print!(" .")
+            } else {
+                print!(" {}", field[i][j]);
+            }
+        }
+        println!();
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Position {
+    x: usize,
+    y: usize,
+}
+
+struct Puyos {
+    puyo_1: (i32, Position),
+    puyo_2: (i32, Position),
+}
+
+impl Puyos {
+    fn new() -> Self {
+        let (puyo_1, puyo_2) = generate_puyo();
+        let start_1: Position = Position { x: 1, y: 3 };
+        let start_2: Position = Position { x: 1, y: 4 };
+        return Puyos {
+            puyo_1: (puyo_1, start_1),
+            puyo_2: (puyo_2, start_2),
+        };
+    }
 }
 
 fn main() {
@@ -168,24 +231,53 @@ fn main() {
 
     let mut field_buf = field;
 
-    for i in 0..FIELD_HEIGHT {
-        for j in 0..FIELD_WIDTH {
-            if field[i][j] == FIELD_WALL {
-                print!("[]");
-            } else if field[i][j] == FIELD_SPACE {
-                print!(" .")
-            } else {
-                print!(" {}", field[i][j]);
-            }
-        }
-        println!();
-    }
+    let g = Getch::new();
+
+    println!("\x1b[2J\x1b[H\x1b[?25l");
 
     loop {
-        if check_end(field) {
-            break;
-        }
+        //if check_end(&field) {
+        //break;
+        //}
         // Generate and Manipulate puyos at this location.
+        let mut puyo = Puyos::new();
+
+        loop {
+            println!("\x1b[H");
+            print_field(&field_buf, &puyo);
+            match g.getch() {
+                Ok(Key::Left) => {
+                    // is_collisionがfalseならば
+                    // pos.yを-1する。
+                    let mut new_puyo1_pos = puyo.puyo_1.1;
+                    let mut new_puyo2_pos = puyo.puyo_2.1;
+                    new_puyo1_pos.y -= 1;
+                    new_puyo2_pos.y -= 1;
+                    if !is_collision(new_puyo1_pos) && !is_collision(new_puyo2_pos) {
+                        puyo.puyo_1.1 = new_puyo1_pos;
+                        puyo.puyo_2.1 = new_puyo2_pos;
+                        println!("\x1b[H");
+                        print_field(&field_buf, &puyo);
+                    }
+                }
+                Ok(Key::Right) => {
+                    // is_collisionがfalseならば
+                    // pos.yを+1する。
+                    let mut new_puyo1_pos = puyo.puyo_1.1;
+                    let mut new_puyo2_pos = puyo.puyo_2.1;
+                    new_puyo1_pos.y += 1;
+                    new_puyo2_pos.y += 1;
+                    if !is_collision(new_puyo1_pos) && !is_collision(new_puyo2_pos) {
+                        puyo.puyo_1.1 = new_puyo1_pos;
+                        puyo.puyo_2.1 = new_puyo2_pos;
+                        println!("\x1b[H");
+                        print_field(&field_buf, &puyo);
+                    }
+                }
+                Ok(Key::Home) => break,
+                _ => (),
+            }
+        }
 
         loop {
             let mut check_loop_end: bool = true;
