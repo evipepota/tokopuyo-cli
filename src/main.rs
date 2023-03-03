@@ -15,9 +15,95 @@ const FIELD_WIDTH: usize = 6 + 2;
 const FIELD_HEIGHT: usize = 12 + 2 + 3;
 type Field = [[i32; FIELD_WIDTH]; FIELD_HEIGHT];
 
+struct UnionFind {
+    par: Field,
+    siz: [[usize; FIELD_WIDTH]; FIELD_HEIGHT],
+}
+
+impl UnionFind {
+    fn new() -> Self {
+        let mut par: Field = [[0; FIELD_WIDTH]; FIELD_HEIGHT];
+        for i in 0..FIELD_HEIGHT {
+            for j in 0..FIELD_WIDTH {
+                par[i][j] = (i * FIELD_WIDTH + j) as i32;
+            }
+        }
+        UnionFind {
+            par,
+            siz: [[1; FIELD_WIDTH]; FIELD_HEIGHT],
+        }
+    }
+
+    fn root(&mut self, x: usize, y: usize) -> i32 {
+        if self.par[x][y] == (x * FIELD_WIDTH + y) as i32 {
+            return (x * FIELD_WIDTH + y) as i32;
+        }
+        self.par[x][y] = self.root(
+            self.par[x][y] as usize / FIELD_WIDTH,
+            self.par[x][y] as usize % FIELD_WIDTH,
+        );
+        self.par[x][y]
+    }
+
+    fn issame(&mut self, pos1: Position, pos2: Position) -> bool {
+        self.root(pos1.x, pos1.y) == self.root(pos2.x, pos2.y)
+    }
+
+    fn unite(&mut self, parent: Position, child: Position) -> bool {
+        let mut parent2 = self.root(parent.x, parent.y);
+        let mut child2 = self.root(child.x, child.y);
+
+        if parent2 == child2 {
+            return false;
+        }
+
+        self.par[child2 as usize / FIELD_WIDTH][child2 as usize % FIELD_WIDTH] = parent2;
+        self.siz[parent2 as usize / FIELD_WIDTH][parent2 as usize % FIELD_WIDTH] +=
+            self.siz[child.x][child.y];
+        true
+    }
+
+    fn size(&mut self, pos: Position) -> usize {
+        let root = self.root(pos.x, pos.y);
+        self.siz[root as usize / FIELD_WIDTH][root as usize % FIELD_WIDTH]
+    }
+}
+
 fn check_vanishing_puyo(field: &mut Field) -> bool {
     // Given the game board of the field, eliminate the connected Puyos of 4 or more by matching them.
-    todo!()
+    let mut check = false;
+    let mut uf = UnionFind::new();
+    for i in (1..FIELD_HEIGHT - 1).rev() {
+        for j in 1..FIELD_WIDTH - 1 {
+            if field[i][j] == FIELD_NULL || field[i][j] == FIELD_SPACE || field[i][j] == FIELD_WALL
+            {
+                continue;
+            }
+            if field[i][j] == field[i + 1][j] {
+                uf.unite(Position { x: i, y: j }, Position { x: i + 1, y: j });
+            }
+            if field[i][j] == field[i - 1][j] {
+                uf.unite(Position { x: i, y: j }, Position { x: i - 1, y: j });
+            }
+            if field[i][j] == field[i][j + 1] {
+                uf.unite(Position { x: i, y: j }, Position { x: i, y: j + 1 });
+            }
+            if field[i][j] == field[i][j - 1] {
+                uf.unite(Position { x: i, y: j }, Position { x: i, y: j - 1 });
+            }
+        }
+    }
+    for i in (1..FIELD_HEIGHT - 1).rev() {
+        for j in 1..FIELD_WIDTH - 1 {
+            if uf.size(Position { x: i, y: j }) >= 4 {
+                // ここで直接消すのでスコア計算機能を実装するとしたらここ。
+                field[i][j] = FIELD_SPACE;
+                check = true;
+            }
+        }
+    }
+
+    check
 }
 
 fn fall_floating_puyos_first(field: &mut Field, puyos: &Puyos) {
