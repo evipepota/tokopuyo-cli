@@ -1,5 +1,7 @@
 extern crate rand;
 
+use std::{thread, time};
+
 use getch_rs::{Getch, Key};
 use rand::Rng;
 
@@ -469,11 +471,14 @@ fn main() {
 
         loop {
             let mut check_loop_end: bool = true;
-            check_loop_end &= !fall_floating_puyos_second(&mut field_buf);
             check_loop_end &= !check_vanishing_puyo(&mut field_buf);
+            thread::sleep(time::Duration::from_millis(500));
+            check_loop_end &= !fall_floating_puyos_second(&mut field_buf);
+            print_field_no_puyo(&field_buf);
             if check_loop_end {
                 break;
             }
+            thread::sleep(time::Duration::from_millis(300));
         }
     }
 }
