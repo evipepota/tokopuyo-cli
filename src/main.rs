@@ -270,6 +270,54 @@ fn print_field_no_puyo(field: &Field) {
     println!();
 }
 
+fn rotate_right(puyos: &mut Puyos) {
+    if puyos.puyo_2.1.x == 0 {
+        puyos.puyo_2.1.x += 1;
+        puyos.puyo_2.1.y += 1;
+    } else if puyos.puyo_2.1.x == 2 {
+        puyos.puyo_2.1.x -= 1;
+        puyos.puyo_2.1.y -= 1;
+    } else if puyos.puyo_1.1.y < puyos.puyo_2.1.y {
+        puyos.puyo_2.1.x += 1;
+        puyos.puyo_2.1.y -= 1;
+    } else {
+        puyos.puyo_2.1.x -= 1;
+        puyos.puyo_2.1.y += 1;
+    }
+    if puyos.puyo_2.1.y == 0 {
+        puyos.puyo_1.1.y += 1;
+        puyos.puyo_2.1.y += 1;
+    }
+    if puyos.puyo_2.1.y == FIELD_WIDTH - 1 {
+        puyos.puyo_1.1.y -= 1;
+        puyos.puyo_2.1.y -= 1;
+    }
+}
+
+fn rotate_left(puyos: &mut Puyos) {
+    if puyos.puyo_2.1.x == 0 {
+        puyos.puyo_2.1.x += 1;
+        puyos.puyo_2.1.y -= 1;
+    } else if puyos.puyo_2.1.x == 2 {
+        puyos.puyo_2.1.x -= 1;
+        puyos.puyo_2.1.y += 1;
+    } else if puyos.puyo_1.1.y < puyos.puyo_2.1.y {
+        puyos.puyo_2.1.x -= 1;
+        puyos.puyo_2.1.y -= 1;
+    } else {
+        puyos.puyo_2.1.x += 1;
+        puyos.puyo_2.1.y += 1;
+    }
+    if puyos.puyo_2.1.y == 0 {
+        puyos.puyo_1.1.y += 1;
+        puyos.puyo_2.1.y += 1;
+    }
+    if puyos.puyo_2.1.y == FIELD_WIDTH - 1 {
+        puyos.puyo_1.1.y -= 1;
+        puyos.puyo_2.1.y -= 1;
+    }
+}
+
 #[derive(Clone, Copy)]
 struct Position {
     x: usize,
