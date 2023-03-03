@@ -159,14 +159,18 @@ fn fall_floating_puyos_first(field: &mut Field, puyos: &Puyos) {
 
 fn fall_floating_puyos_second(field: &mut Field) -> bool {
     let mut check: bool = false;
-    for j in 1..FIELD_WIDTH {
+    for j in 1..FIELD_WIDTH - 1 {
         let mut k = FIELD_HEIGHT - 2;
-        for i in (0..FIELD_HEIGHT - 2).rev() {
+        for i in (0..FIELD_HEIGHT - 1).rev() {
+            if field[i][j] == FIELD_NULL {
+                continue;
+            }
             if field[i][j] != FIELD_SPACE {
+                field[k][j] = field[i][j];
                 if i != k {
+                    field[i][j] = FIELD_SPACE;
                     check = true;
                 }
-                field[k][j] = field[i][j];
                 k -= 1;
             }
         }
