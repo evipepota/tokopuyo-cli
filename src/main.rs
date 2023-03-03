@@ -200,7 +200,10 @@ fn fall_floating_puyos_second(field: &mut Field) -> bool {
 }
 
 fn check_end(field: &Field) -> bool {
-    todo!()
+    if field[4][3] != FIELD_SPACE {
+        return true;
+    }
+    false
 }
 
 fn generate_puyo() -> (i32, i32) {
@@ -232,7 +235,7 @@ fn print_field(field: &Field, puyos: &Puyos) {
                 print!(" {}", puyos.puyo_1.0);
             } else if i == puyos.puyo_2.1.x && j == puyos.puyo_2.1.y {
                 print!(" {}", puyos.puyo_2.0);
-            } else if i == 4 && j == 3 {
+            } else if i == 4 && j == 3 && field[i][j] == FIELD_SPACE {
                 print!(" x");
             } else if field[i][j] == FIELD_NULL {
                 print!("  ");
@@ -253,7 +256,7 @@ fn print_field_no_puyo(field: &Field) {
     println!("\x1b[H");
     for i in 0..FIELD_HEIGHT {
         for j in 0..FIELD_WIDTH {
-            if i == 4 && j == 3 {
+            if i == 4 && j == 3 && field[i][j] == FIELD_SPACE {
                 print!(" x");
             } else if field[i][j] == FIELD_NULL {
                 print!("  ");
@@ -498,9 +501,10 @@ fn main() {
     println!("\x1b[2J\x1b[H\x1b[?25l");
 
     loop {
-        //if check_end(&field) {
-        //break;
-        //}
+        if check_end(&field_buf) {
+            println!("\x1b[?25h");
+            return;
+        }
         // Generate and Manipulate puyos at this location.
         let mut puyo = Puyos::new();
 
