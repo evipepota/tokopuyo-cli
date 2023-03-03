@@ -51,12 +51,21 @@ impl UnionFind {
         self.root(pos1.x, pos1.y) == self.root(pos2.x, pos2.y)
     }
 
-    fn unite(&mut self, parent: Position, child: Position) -> bool {
+    fn unite(&mut self, parent: &mut Position, child: &mut Position) -> bool {
         let mut parent2 = self.root(parent.x, parent.y);
+        parent.x = parent2 as usize / FIELD_WIDTH;
+        parent.y = parent2 as usize % FIELD_WIDTH;
         let mut child2 = self.root(child.x, child.y);
+        child.x = child2 as usize / FIELD_WIDTH;
+        child.y = child2 as usize % FIELD_WIDTH;
 
         if parent2 == child2 {
             return false;
+        }
+
+        if self.siz[parent.x][parent.y] < self.siz[child.x][child.y] {
+            std::mem::swap(&mut parent2, &mut child2);
+            std::mem::swap(parent, child);
         }
 
         self.par[child2 as usize / FIELD_WIDTH][child2 as usize % FIELD_WIDTH] = parent2;
@@ -82,16 +91,28 @@ fn check_vanishing_puyo(field: &mut Field) -> bool {
                 continue;
             }
             if field[i][j] == field[i + 1][j] {
-                uf.unite(Position { x: i, y: j }, Position { x: i + 1, y: j });
+                uf.unite(
+                    &mut Position { x: i, y: j },
+                    &mut Position { x: i + 1, y: j },
+                );
             }
             if field[i][j] == field[i - 1][j] {
-                uf.unite(Position { x: i, y: j }, Position { x: i - 1, y: j });
+                uf.unite(
+                    &mut Position { x: i, y: j },
+                    &mut Position { x: i - 1, y: j },
+                );
             }
             if field[i][j] == field[i][j + 1] {
-                uf.unite(Position { x: i, y: j }, Position { x: i, y: j + 1 });
+                uf.unite(
+                    &mut Position { x: i, y: j },
+                    &mut Position { x: i, y: j + 1 },
+                );
             }
             if field[i][j] == field[i][j - 1] {
-                uf.unite(Position { x: i, y: j }, Position { x: i, y: j - 1 });
+                uf.unite(
+                    &mut Position { x: i, y: j },
+                    &mut Position { x: i, y: j - 1 },
+                );
             }
         }
     }
