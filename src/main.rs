@@ -507,7 +507,7 @@ fn main() {
         loop {
             print_field(&field_buf, &puyo);
             match g.getch() {
-                Ok(Key::Left) => {
+                Ok(Key::Char('a')) => {
                     // is_collisionがfalseならば
                     // pos.yを-1する。
                     let mut new_puyo1_pos = puyo.puyo_1.1;
@@ -520,7 +520,7 @@ fn main() {
                         print_field(&field_buf, &puyo);
                     }
                 }
-                Ok(Key::Right) => {
+                Ok(Key::Char('d')) => {
                     // is_collisionがfalseならば
                     // pos.yを+1する。
                     let mut new_puyo1_pos = puyo.puyo_1.1;
@@ -533,10 +533,27 @@ fn main() {
                         print_field(&field_buf, &puyo);
                     }
                 }
-                Ok(Key::Char('\r')) => {
+                Ok(Key::Left) => {
+                    rotate_left(&mut puyo);
+                    print_field(&field_buf, &puyo);
+                }
+                Ok(Key::Right) => {
+                    rotate_right(&mut puyo);
+                    print_field(&field_buf, &puyo);
+                }
+                Ok(Key::Down) => {
                     fall_floating_puyos_first(&mut field_buf, &puyo);
                     print_field_no_puyo(&field_buf);
                     break;
+                }
+                Ok(Key::Char('s')) => {
+                    fall_floating_puyos_first(&mut field_buf, &puyo);
+                    print_field_no_puyo(&field_buf);
+                    break;
+                }
+                Ok(Key::Esc) => {
+                    println!("\x1b[?25h");
+                    return;
                 }
                 _ => (),
             }
